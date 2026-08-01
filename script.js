@@ -575,51 +575,19 @@ MAIN GEOMETRY
 
 ==============================================================*/
 
-const geometry =
+const geometry = new THREE.IcosahedronGeometry(2, 1);
 
-    new THREE.IcosahedronGeometry(
+const material = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.18,
+    metalness: 1,
+    roughness: 0.1
+});
 
-        2,
-
-        1
-
-    );
-
-
-
-const material =
-
-    new THREE.MeshPhysicalMaterial({
-
-        color: 0xffffff,
-
-        wireframe: true,
-
-        transparent: true,
-
-        opacity: .18,
-
-        metalness: 1,
-
-        roughness: .1
-
-    });
-
-
-
-const sphere =
-
-    new THREE.Mesh(
-
-        geometry,
-
-        material
-
-    );
-
+const sphere = new THREE.Mesh(geometry, material);
 scene.add(sphere);
-
-
 
 /*==============================================================
 
@@ -627,42 +595,15 @@ INNER SPHERE
 
 ==============================================================*/
 
-const innerGeometry =
+const innerGeometry = new THREE.IcosahedronGeometry(1, 4);
 
-    new THREE.IcosahedronGeometry(
+const innerMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.06
+});
 
-        1,
-
-        4
-
-    );
-
-
-
-const innerMaterial =
-
-    new THREE.MeshStandardMaterial({
-
-        color: 0xffffff,
-
-        transparent: true,
-
-        opacity: .06
-
-    });
-
-
-
-const innerSphere =
-
-    new THREE.Mesh(
-
-        innerGeometry,
-
-        innerMaterial
-
-    );
-
+const innerSphere = new THREE.Mesh(innerGeometry, innerMaterial);
 scene.add(innerSphere);
 
 
@@ -2183,5 +2124,229 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
+    /*==============================================================
+
+    BACKGROUND MUSIC ENGINE (#bgAudioPlayer)
+
+    ==============================================================*/
+
+    const bgAudio = document.getElementById("bgAudioPlayer");
+    let isAudioEnabled = false;
+    const audioToggleBtn = document.getElementById("audioToggleBtn");
+
+    if (bgAudio) {
+        bgAudio.volume = 0.6;
+    }
+
+    function toggleAudio() {
+        if (!bgAudio) return;
+        isAudioEnabled = !isAudioEnabled;
+        if (isAudioEnabled) {
+            bgAudio.play().then(() => {
+                if (audioToggleBtn) audioToggleBtn.classList.add("playing");
+            }).catch(err => {
+                console.error("Audio playback error:", err);
+            });
+        } else {
+            bgAudio.pause();
+            if (audioToggleBtn) audioToggleBtn.classList.remove("playing");
+        }
+    }
+
+    if (audioToggleBtn) {
+        audioToggleBtn.addEventListener("click", toggleAudio);
+    }
+
+    /*==============================================================
+
+    3. SPOTLIGHT COMMAND PALETTE (CMD + K) ENGINE
+
+    ==============================================================*/
+
+    const cmdModal = document.getElementById("cmd-palette-backdrop");
+    const cmdTriggerBtn = document.getElementById("cmdTriggerBtn");
+    const cmdSearchInput = document.getElementById("cmdSearchInput");
+    const cmdItems = document.querySelectorAll(".cmd-item");
+
+    function openCmdPalette() {
+        if (cmdModal) {
+            cmdModal.classList.add("active");
+            playSwooshSound();
+            setTimeout(() => {
+                if (cmdSearchInput) cmdSearchInput.focus();
+            }, 100);
+        }
+    }
+
+    function closeCmdPalette() {
+        if (cmdModal) {
+            cmdModal.classList.remove("active");
+            if (cmdSearchInput) cmdSearchInput.value = "";
+            filterCmdItems("");
+        }
+    }
+
+    if (cmdTriggerBtn) {
+        cmdTriggerBtn.addEventListener("click", openCmdPalette);
+    }
+
+    // Shortcut listener (Cmd + K / Ctrl + K or Esc)
+    window.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+            e.preventDefault();
+            if (cmdModal && cmdModal.classList.contains("active")) {
+                closeCmdPalette();
+            } else {
+                openCmdPalette();
+            }
+        } else if (e.key === "Escape" && cmdModal && cmdModal.classList.contains("active")) {
+            closeCmdPalette();
+        }
+    });
+
+    // Close on backdrop click
+    if (cmdModal) {
+        cmdModal.addEventListener("click", (e) => {
+            if (e.target === cmdModal) closeCmdPalette();
+        });
+    }
+
+    // Filter command items & interactive AI prompt response
+    function filterCmdItems(query) {
+        const q = query.toLowerCase().trim();
+        let hasMatch = false;
+
+        cmdItems.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (text.includes(q)) {
+                item.style.display = "flex";
+                hasMatch = true;
+            } else {
+                item.style.display = "none";
+            }
+        });
+
+        // AI Assistant chat response simulation if user asks a question
+        if (!hasMatch && q.length > 2) {
+            const resultsBody = document.querySelector(".cmd-results-body");
+            let aiItem = document.getElementById("cmdAiResponseItem");
+
+            if (!aiItem && resultsBody) {
+                aiItem = document.createElement("div");
+                aiItem.id = "cmdAiResponseItem";
+                aiItem.className = "cmd-item active";
+                aiItem.style.background = "rgba(16, 185, 129, 0.12)";
+                aiItem.style.borderColor = "rgba(16, 185, 129, 0.3)";
+                resultsBody.appendChild(aiItem);
+            }
+
+            let responseText = "I am Preet's AI Assistant. How can I help you regarding automation, web development, or hiring Preet?";
+            if (q.includes("hire") || q.includes("contact") || q.includes("price")) {
+                responseText = "Preet is available for custom web, WebGL, & AI automation projects. Click here to jump to Contact!";
+            } else if (q.includes("skill") || q.includes("stack") || q.includes("tech")) {
+                responseText = "Preet specializes in JavaScript, Python, GSAP, Three.js, OpenAI LLMs, & n8n.";
+            }
+
+            if (aiItem) {
+                aiItem.innerHTML = `
+                    <i class="fa-solid fa-robot" style="color: #10b981;"></i>
+                    <div class="cmd-item-info">
+                        <span style="color: #10b981;">PREET.AI: "${query}"</span>
+                        <small style="color: #e5e7eb;">${responseText}</small>
+                    </div>
+                `;
+                aiItem.onclick = () => {
+                    closeCmdPalette();
+                    const contactSec = document.querySelector("#contact");
+                    if (contactSec) contactSec.scrollIntoView({ behavior: "smooth" });
+                };
+            }
+        } else {
+            const aiItem = document.getElementById("cmdAiResponseItem");
+            if (aiItem) aiItem.remove();
+        }
+    }
+
+    if (cmdSearchInput) {
+        cmdSearchInput.addEventListener("input", (e) => filterCmdItems(e.target.value));
+    }
+
+    // Execute command item on click
+    cmdItems.forEach(item => {
+        item.addEventListener("click", () => {
+            const action = item.dataset.action;
+            const target = item.dataset.target;
+            const fn = item.dataset.fn;
+
+            closeCmdPalette();
+
+            if (action === "nav" && target) {
+                const targetSec = document.querySelector(target);
+                if (targetSec) targetSec.scrollIntoView({ behavior: "smooth" });
+            } else if (action === "action" && fn) {
+                if (fn === "toggleAudio") toggleAudio();
+                if (fn === "cycleTheme") cycleTheme();
+            }
+        });
+    });
+
+    /*==============================================================
+
+    4. LIVE TELEMETRY CLOCK (IST NEW DELHI TIME)
+
+    ==============================================================*/
+
+    const navLiveClock = document.getElementById("navLiveClock");
+
+    function updateLiveClock() {
+        if (!navLiveClock) return;
+        const now = new Date();
+        const options = {
+            timeZone: "Asia/Kolkata",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true
+        };
+        const timeStr = new Intl.DateTimeFormat("en-US", options).format(now);
+        navLiveClock.textContent = timeStr;
+    }
+    updateLiveClock();
+    setInterval(updateLiveClock, 1000);
+
+    /*==============================================================
+
+    5. MULTI-THEME AESTHETIC SWITCHER ENGINE
+
+    ==============================================================*/
+
+    const themeToggleBtn = document.getElementById("themeToggleBtn");
+    const themes = ["default", "paper", "gold"];
+    let currentThemeIndex = 0;
+
+    function cycleTheme() {
+        currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+        const nextTheme = themes[currentThemeIndex];
+
+        if (nextTheme === "default") {
+            document.documentElement.removeAttribute("data-theme");
+        } else {
+            document.documentElement.setAttribute("data-theme", nextTheme);
+        }
+
+        playClickSound();
+
+        // Animate theme switch transition overlay
+        if (typeof gsap !== "undefined") {
+            gsap.fromTo("body", 
+                { filter: "brightness(1.3)" },
+                { filter: "brightness(1)", duration: 0.5, ease: "power2.out" }
+            );
+        }
+    }
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener("click", cycleTheme);
+    }
 
 });

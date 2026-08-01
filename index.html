@@ -34,6 +34,64 @@
 <body>
 
     <!-- ========================= -->
+    <!-- SPOTLIGHT COMMAND PALETTE (CMD + K) -->
+    <!-- ========================= -->
+    <div id="cmd-palette-backdrop" class="cmd-palette-modal">
+        <div class="cmd-palette-card">
+            <div class="cmd-input-wrap">
+                <i class="fa-solid fa-terminal cmd-icon"></i>
+                <input type="text" id="cmdSearchInput" placeholder="Type a command or ask PREET.AI... (e.g. /skills, /theme, hello)" autocomplete="off">
+                <kbd class="cmd-esc-hint">ESC</kbd>
+            </div>
+            <div class="cmd-results-body">
+                <div class="cmd-section-title">SYSTEM ACTIONS</div>
+                <div class="cmd-item active" data-action="nav" data-target="#hero">
+                    <i class="fa-solid fa-house"></i>
+                    <div class="cmd-item-info"><span>Jump to Hero Section</span><small>Home / Top</small></div>
+                    <kbd>↵</kbd>
+                </div>
+                <div class="cmd-item" data-action="nav" data-target="#projects">
+                    <i class="fa-solid fa-laptop-code"></i>
+                    <div class="cmd-item-info"><span>View Featured Case Studies</span><small>Portfolio Projects</small></div>
+                    <kbd>↵</kbd>
+                </div>
+                <div class="cmd-item" data-action="nav" data-target="#skills">
+                    <i class="fa-solid fa-atom"></i>
+                    <div class="cmd-item-info"><span>Inspect Tech Ecosystem</span><small>Telemetry Galaxy</small></div>
+                    <kbd>↵</kbd>
+                </div>
+                <div class="cmd-item" data-action="nav" data-target="#services">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <div class="cmd-item-info"><span>Explore Engineering Disciplines</span><small>Services Monolith</small></div>
+                    <kbd>↵</kbd>
+                </div>
+                <div class="cmd-item" data-action="action" data-fn="toggleAudio">
+                    <i class="fa-solid fa-volume-high"></i>
+                    <div class="cmd-item-info"><span>Toggle Web Audio Synth</span><small>Spatial Sound FX</small></div>
+                    <kbd>↵</kbd>
+                </div>
+                <div class="cmd-item" data-action="action" data-fn="cycleTheme">
+                    <i class="fa-solid fa-palette"></i>
+                    <div class="cmd-item-info"><span>Cycle Color Aesthetic</span><small>Obsidian / Paper / Gold</small></div>
+                    <kbd>↵</kbd>
+                </div>
+                <div class="cmd-item" data-action="nav" data-target="#contact">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <div class="cmd-item-info"><span>Initiate Inquiry</span><small>Contact Preet</small></div>
+                    <kbd>↵</kbd>
+                </div>
+            </div>
+            <div class="cmd-footer-bar">
+                <div class="cmd-ai-badge"><i class="fa-solid fa-microchip"></i> PREET.AI RUNTIME READY</div>
+                <div class="cmd-nav-hints">
+                    <span><kbd>↑</kbd> <kbd>↓</kbd> Navigate</span>
+                    <span><kbd>↵</kbd> Select</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================= -->
     <!-- LOADER -->
     <!-- ========================= -->
 
@@ -107,7 +165,7 @@
 
             <div class="logo">
 
-                <a href="#hero">
+                <a href="#hero" data-cursor="PR">
 
                     <span>P</span>
 
@@ -183,7 +241,26 @@
 
             <div class="nav-right">
 
-                <a href="#" class="resume-btn">
+                <!-- SOUND SYNTH TOGGLE -->
+                <button class="audio-toggle-btn" id="audioToggleBtn" title="Toggle Spatial Audio" data-cursor="SOUND">
+                    <div class="eq-bars">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <span class="audio-label">SOUND</span>
+                </button>
+
+                <!-- THEME SWITCHER TOGGLE -->
+                <button class="theme-toggle-btn" id="themeToggleBtn" title="Cycle Color Theme" data-cursor="THEME">
+                    <i class="fa-solid fa-circle-half-stroke"></i>
+                </button>
+
+                <!-- CMD + K SEARCH BADGE -->
+                <button class="cmd-trigger-btn" id="cmdTriggerBtn" title="Open Command Palette" data-cursor="CMD+K">
+                    <i class="fa-solid fa-terminal"></i>
+                    <span class="cmd-kbd-badge">⌘K</span>
+                </button>
+
+                <a href="#" class="resume-btn" data-cursor="CV">
 
                     Resume
 
@@ -288,54 +365,33 @@
             <div class="hero-left">
 
                 <p class="hero-intro">
-
                     HELLO I'M
-
                 </p>
 
                 <h1 class="hero-title">
-
                     <span>PREET</span>
-
                     <span>RAJPUT</span>
-
                 </h1>
 
                 <div class="hero-role">
-
-                    <span></span>
-
-                    <h2>
-
-                        AI AUTOMATION ENGINEER
-
-                    </h2>
-
+                    <span class="role-bar"></span>
+                    <h2>AI AUTOMATION ENGINEER</h2>
                 </div>
 
                 <p class="hero-description">
-
-                    I build modern web experiences,
-                    AI powered automations,
-                    intelligent workflows,
-                    and premium digital products
-                    that blend beautiful design
-                    with cutting-edge technology.
-
+                    Architecting Awwwards-grade web experiences, autonomous AI agent pipelines, and high-performance WebGL applications that blend luxury design with cutting-edge technical mastery.
                 </p>
 
                 <div class="hero-buttons">
 
-                    <a href="#projects" class="primary-btn">
-
-                        Explore Work
-
+                    <a href="#projects" class="primary-btn-glow" data-cursor="WORK">
+                        <span>Explore Work</span>
+                        <i class="fa-solid fa-arrow-right-long"></i>
                     </a>
 
-                    <a href="#contact" class="secondary-btn">
-
-                        Let's Talk
-
+                    <a href="#contact" class="secondary-btn-glass" data-cursor="HIRE">
+                        <span>Let's Talk</span>
+                        <i class="fa-solid fa-comments"></i>
                     </a>
 
                 </div>
@@ -367,9 +423,7 @@
                 <span></span>
 
                 <p>
-
-                    Scroll
-
+                    Scroll To Explore
                 </p>
 
             </div>
@@ -1674,6 +1728,13 @@
     <script src="https://unpkg.com/split-type@0.3.4/umd/index.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+
+    <!-- AUDIO PLAYER -->
+    <audio id="bgAudioPlayer" loop preload="auto">
+        <source src="assets/Instupendo - Comfort Chain.mp3" type="audio/mpeg">
+        <source src="assets/instupendo - Comfort Chain.mp3" type="audio/mpeg">
+        <source src="assets/bg_music.mp3" type="audio/mpeg">
+    </audio>
 
     <script src="script.js"></script>
 
