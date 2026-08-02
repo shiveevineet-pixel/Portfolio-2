@@ -571,40 +571,159 @@ scene.add(pointLight2);
 
 /*==============================================================
 
-MAIN GEOMETRY
+3D EARTH GLOBE SYSTEM
 
 ==============================================================*/
 
-const geometry = new THREE.IcosahedronGeometry(2, 1);
+const earthGroup = new THREE.Group();
+earthGroup.rotation.z = 0.41;
+scene.add(earthGroup);
 
-const material = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.18,
-    metalness: 1,
-    roughness: 0.1
+const textureLoader = new THREE.TextureLoader();
+
+const earthTextureUrl = 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
+const earthBumpUrl = 'https://unpkg.com/three-globe/example/img/earth-topology.png';
+const earthCloudsUrl = 'https://unpkg.com/three-globe/example/img/earth-clouds.png';
+
+function createProceduralEarthTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 2048;
+    canvas.height = 1024;
+    const ctx = canvas.getContext('2d');
+
+    const oceanGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    oceanGradient.addColorStop(0, '#040d1a');
+    oceanGradient.addColorStop(0.5, '#0b203a');
+    oceanGradient.addColorStop(1, '#040d1a');
+    ctx.fillStyle = oceanGradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = 'rgba(0, 200, 255, 0.08)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 64) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += 64) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+
+    ctx.fillStyle = '#1b3b2b';
+    ctx.shadowColor = 'rgba(0, 255, 170, 0.3)';
+    ctx.shadowBlur = 12;
+
+    const drawContinent = (x, y, rx, ry, rot) => {
+        ctx.beginPath();
+        ctx.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2);
+        ctx.fill();
+    };
+
+    drawContinent(480, 320, 260, 150, -0.2);
+    drawContinent(680, 680, 150, 230, 0.2);
+    drawContinent(1380, 300, 440, 190, 0.1);
+    drawContinent(1140, 580, 190, 250, 0);
+    drawContinent(1720, 750, 140, 110, -0.1);
+
+    ctx.fillStyle = 'rgba(255, 220, 130, 0.8)';
+    ctx.shadowColor = 'rgba(255, 200, 80, 0.8)';
+    ctx.shadowBlur = 6;
+    for (let i = 0; i < 400; i++) {
+        const cx = Math.random() * canvas.width;
+        const cy = Math.random() * canvas.height;
+        ctx.fillRect(cx, cy, Math.random() * 3 + 1, Math.random() * 3 + 1);
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.needsUpdate = true;
+    return tex;
+}
+
+const earthGeometry = new THREE.SphereGeometry(2.2, 64, 64);
+const earthMaterial = new THREE.MeshStandardMaterial({
+    map: createProceduralEarthTexture(),
+    roughness: 0.5,
+    metalness: 0.1
 });
 
-const sphere = new THREE.Mesh(geometry, material);
-scene.add(sphere);
-
-/*==============================================================
-
-INNER SPHERE
-
-==============================================================*/
-
-const innerGeometry = new THREE.IcosahedronGeometry(1, 4);
-
-const innerMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0.06
+textureLoader.load(earthTextureUrl, (tex) => {
+    earthMaterial.map = tex;
+    earthMaterial.needsUpdate = true;
 });
 
-const innerSphere = new THREE.Mesh(innerGeometry, innerMaterial);
-scene.add(innerSphere);
+textureLoader.load(earthBumpUrl, (bumpTex) => {
+    earthMaterial.bumpMap = bumpTex;
+    earthMaterial.bumpScale = 0.06;
+    earthMaterial.needsUpdate = true;
+});
+
+const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+earthGroup.add(earthMesh);
+
+const cloudsGeometry = new THREE.SphereGeometry(2.24, 64, 64);
+const cloudsMaterial = new THREE.MeshStandardMaterial({
+    transparent: true,
+    opacity: 0.35,
+    blending: THREE.AdditiveBlending
+});
+
+textureLoader.load(earthCloudsUrl, (cloudTex) => {
+    cloudsMaterial.map = cloudTex;
+    cloudsMaterial.needsUpdate = true;
+});
+
+const cloudsMesh = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
+earthGroup.add(cloudsMesh);
+
+const atmosphereGeometry = new THREE.SphereGeometry(2.48, 64, 64);
+const atmosphereMaterial = new THREE.ShaderMaterial({
+    vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+            vNormal = normalize(normalMatrix * normal);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `,
+    fragmentShader: `
+        varying vec3 vNormal;
+        void main() {
+            float intensity = pow(0.62 - dot(vNormal, vec3(0, 0, 1.0)), 2.2);
+            gl_FragColor = vec4(0.2, 0.65, 1.0, 1.0) * intensity;
+        }
+    `,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    transparent: true
+});
+
+const atmosphereMesh = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+earthGroup.add(atmosphereMesh);
+
+const orbitRingGroup = new THREE.Group();
+const ringGeometry = new THREE.RingGeometry(2.85, 2.87, 128);
+const ringMaterial = new THREE.MeshBasicMaterial({
+    color: 0x00e1ff,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.25
+});
+const orbitRing1 = new THREE.Mesh(ringGeometry, ringMaterial);
+orbitRing1.rotation.x = Math.PI / 2.2;
+orbitRingGroup.add(orbitRing1);
+
+const orbitRing2 = new THREE.Mesh(ringGeometry, ringMaterial);
+orbitRing2.rotation.x = Math.PI / 1.6;
+orbitRing2.rotation.y = Math.PI / 4;
+orbitRingGroup.add(orbitRing2);
+
+earthGroup.add(orbitRingGroup);
+
+const sphere = earthGroup;
+const innerSphere = cloudsMesh;
 
 
 
@@ -810,27 +929,19 @@ function animate() {
     const elapsed = clock.getElapsedTime();
 
     /*==========================
-      MAIN SPHERE
+      MAIN 3D EARTH & CLOUDS
     ==========================*/
 
-    sphere.rotation.x += 0.0025;
-    sphere.rotation.y += 0.0035;
+    earthMesh.rotation.y += 0.0022;
+    cloudsMesh.rotation.y += 0.0032;
+    cloudsMesh.rotation.x += 0.0004;
+    orbitRingGroup.rotation.z += 0.0025;
 
-    sphere.position.y =
+    earthGroup.position.y =
         Math.sin(elapsed * 0.8) * 0.25;
 
-    sphere.position.x =
+    earthGroup.position.x =
         Math.cos(elapsed * 0.5) * 0.15;
-
-    /*==========================
-      INNER SPHERE
-    ==========================*/
-
-    innerSphere.rotation.x -= 0.002;
-    innerSphere.rotation.y -= 0.004;
-
-    innerSphere.position.y =
-        Math.cos(elapsed * 1.2) * 0.15;
 
     /*==========================
       PARTICLES
